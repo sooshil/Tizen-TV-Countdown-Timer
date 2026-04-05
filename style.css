@@ -185,7 +185,7 @@ input:focus {
 }
 
 #timer-screen {
-    background: rgba(0, 0, 0, 0.08);
+    background: transparent;
 }
 
 @media (max-width: 900px) {
