@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets"
+        xmlns:tizen="http://tizen.org/ns/widgets"
+    id="http://sukajee.com/tvcountdown"
+    version="1.0.0"
+    viewmodes="fullscreen">
+    <tizen:profile name="tv"/>
+
+    <tizen:application id="sukajee123.timer" package="sukajee123" required_version="2.3"/>
+    <tizen:privilege name="http://tizen.org/privilege/mediastorage"/>
+    <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
+    
+    <content src="index.html"/>
+
+    <feature name="http://tizen.org/feature/screen.size.all"/>
+
+    <icon src="icon.png"/>
+
+    <name>Countdown Timer</name>
+
+</widget>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>TV Countdown Timer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div id="setup-screen" class="screen active">
+        <div class="setup-shell">
+            <h1>Countdown Timer</h1>
+            <p class="subtitle">Pick a preset or use custom time</p>
+
+            <div class="presets-grid">
+                <button class="preset focusable" data-time="5">5 sec</button>
+                <button class="preset focusable" data-time="10">10 sec</button>
+                <button class="preset focusable" data-time="15">15 sec</button>
+                <button class="preset focusable" data-time="20">20 sec</button>
+                <button class="preset focusable" data-time="30">30 sec</button>
+                <button class="preset focusable" data-time="45">45 sec</button>
+                <button class="preset focusable" data-time="100">100 sec</button>
+
+                <button class="preset focusable" data-time="60">1 min</button>
+                <button class="preset focusable" data-time="120">2 min</button>
+                <button class="preset focusable" data-time="180">3 min</button>
+                <button class="preset focusable" data-time="240">4 min</button>
+                <button class="preset focusable" data-time="300">5 min</button>
+                <button class="preset focusable" data-time="360">6 min</button>
+                <button class="preset focusable" data-time="420">7 min</button>
+
+                <button class="preset focusable" data-time="480">8 min</button>
+                <button class="preset focusable" data-time="540">9 min</button>
+                <button class="preset focusable" data-time="600">10 min</button>
+                <button class="preset focusable" data-time="720">12 min</button>
+                <button class="preset focusable" data-time="900">15 min</button>
+                <button class="preset focusable" data-time="1200">20 min</button>
+                <button class="preset focusable" data-time="1500">25 min</button>
+
+                <button class="preset focusable" data-time="1800">30 min</button>
+                <button class="preset focusable" data-time="2700">45 min</button>
+                <button class="preset focusable" data-time="3000">50 min</button>
+                <button class="preset focusable" data-time="3600">60 min</button>
+                <button class="preset focusable" data-time="4500">75 min</button>
+                <button class="preset focusable" data-time="5400">90 min</button>
+                <button class="preset focusable" data-time="6000">100 min</button>
+
+                <button class="preset focusable" data-time="3600">1 hr</button>
+                <button class="preset focusable" data-time="5400">1.5 hr</button>
+                <button class="preset focusable" data-time="7200">2 hr</button>
+                <button class="preset focusable" data-time="9000">2.5 hr</button>
+                <button class="preset focusable" data-time="10800">3 hr</button>
+                <button class="preset focusable" data-time="14400">4 hr</button>
+                <button class="preset focusable" data-time="18000">5 hr</button>
+
+                <button class="preset focusable" data-time="21600">6 hr</button>
+                <button class="preset focusable" data-time="25200">7 hr</button>
+                <button class="preset focusable" data-time="28800">8 hr</button>
+                <button class="preset focusable" data-time="32400">9 hr</button>
+                <button class="preset focusable" data-time="36000">10 hr</button>
+                <button class="preset focusable" data-time="43200">12 hr</button>
+                <button class="preset focusable" data-time="86400">24 hr</button>
+            </div>
+
+            <button id="custom-btn" class="custom-toggle focusable">Custom Time</button>
+
+            <div id="custom-panel" class="custom-panel hidden">
+                <div class="time-inputs">
+                    <input id="hours" class="focusable" type="number" placeholder="HH" min="0" tabindex="-1">
+                    <input id="minutes" class="focusable" type="number" placeholder="MM" min="0" tabindex="-1">
+                    <input id="seconds" class="focusable" type="number" placeholder="SS" min="0" tabindex="-1">
+                </div>
+                <button id="start-btn" class="primary focusable">Start Custom Timer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="timer-screen" class="screen">
+        <div id="timer-display">00:00</div>
+    </div>
+
+    <script src="main.js"></script>
+    <audio id="alarm-sound" src="alarm.mp3" loop></audio>
+</body>
+
+</html>

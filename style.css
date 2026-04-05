@@ -1,0 +1,197 @@
+:root {
+    --bg-start: #0b132b;
+    --bg-mid: #1c2541;
+    --bg-end: #09101f;
+    --card: rgba(255, 255, 255, 0.08);
+    --card-border: rgba(255, 255, 255, 0.15);
+    --text: #f5f7ff;
+    --muted: #bbcaee;
+    --accent: #59ffa0;
+    --accent-2: #38bdf8;
+    --focus: #ffd166;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--text);
+    font-family: sans-serif;
+    text-align: center;
+    background:
+        radial-gradient(1200px 700px at 10% 5%, rgba(56, 189, 248, 0.22), transparent 60%),
+        radial-gradient(1000px 650px at 90% 85%, rgba(89, 255, 160, 0.18), transparent 60%),
+        linear-gradient(140deg, var(--bg-start), var(--bg-mid) 52%, var(--bg-end));
+}
+
+.screen {
+    display: none;
+    min-height: 100vh;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 0;
+}
+
+.screen.active {
+    display: flex;
+}
+
+.setup-shell {
+    min-width: 75vw;
+    max-width: 80vw;
+    margin: 0 auto;
+    min-height: 92vh;
+    max-height: 96vh;
+    padding: 26px 40px;
+    border-radius: 26px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(8px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+h1 {
+    margin: 0;
+    font-size: clamp(56px, 6vw, 86px);
+    letter-spacing: 1.2px;
+}
+
+.subtitle {
+    margin: 6px 0 12px;
+    font-size: clamp(24px, 2.2vw, 34px);
+    color: var(--muted);
+}
+
+.presets-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-rows: repeat(6, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+    flex: 1;
+}
+
+button,
+input {
+    border-radius: 14px;
+    border: 1px solid transparent;
+    font-family: inherit;
+}
+
+button {
+    font-size: 34px;
+    font-size: clamp(40px, 2.8vw, 56px);
+    font-weight: 700;
+    min-height: 106px;
+    padding: 14px 10px;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.07));
+    color: var(--text);
+    cursor: pointer;
+    transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+}
+
+.preset {
+    font-size: 44px;
+    line-height: 1.05;
+    padding: 18px 8px;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.38);
+}
+
+.custom-toggle {
+    width: min(740px, 100%);
+    margin: 0 auto;
+    padding-left: 28px;
+    padding-right: 28px;
+    background: linear-gradient(140deg, rgba(56, 189, 248, 0.32), rgba(56, 189, 248, 0.12));
+}
+
+.custom-panel {
+    margin-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 20px;
+}
+
+.custom-panel.hidden {
+    display: none;
+}
+
+.time-inputs {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.time-inputs input {
+    width: min(260px, 28vw);
+    padding: 16px;
+    font-size: clamp(34px, 2.8vw, 46px);
+    text-align: center;
+    color: var(--text);
+    background: rgba(11, 19, 43, 0.6);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.primary {
+    width: min(820px, 100%);
+    background: linear-gradient(140deg, rgba(89, 255, 160, 0.35), rgba(89, 255, 160, 0.16));
+}
+
+button:focus,
+input:focus {
+    outline: 4px solid var(--focus);
+    outline-offset: 2px;
+    border-color: rgba(255, 255, 255, 0.7);
+}
+
+#timer-display {
+    font-family: monospace;
+    font-size: 280px;
+    font-size: clamp(260px, 30vw, 560px);
+    font-weight: 700;
+    letter-spacing: 8px;
+    text-align: center;
+    color: white;
+    text-shadow: none;
+    transition: transform 0.2s ease;
+}
+
+#timer-screen {
+    width: 100vw;
+    min-height: 100vh;
+    background: #000;
+}
+
+@media (max-width: 900px) {
+    .setup-shell {
+        padding: 24px;
+        max-height: none;
+        overflow: visible;
+    }
+
+    .presets-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-rows: none;
+        flex: 0 0 auto;
+    }
+
+    .time-inputs {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .time-inputs input {
+        width: min(320px, 80vw);
+    }
+
+}

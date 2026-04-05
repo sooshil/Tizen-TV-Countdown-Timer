@@ -1,0 +1,6 @@
+# Tizen build output
+Debug/
+*.wgt
+
+# macOS
+.DS_Store
