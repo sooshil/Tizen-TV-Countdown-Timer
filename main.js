@@ -1,10 +1,18 @@
 let totalSeconds = 0;
 let timerInterval = null;
+let timerRafId = null;
 let isPaused = false;
 let alarmSound;
 let alarmTriggered = false;
 let isTimerRunning = false;
 let alarmPlaybackToken = 0;
+const ENABLE_ALARM_AUDIO = true;
+let countdownStartEpochMs = 0;
+let timerStartSeconds = 0;
+let pausedAtEpochMs = 0;
+let totalPausedMs = 0;
+let lastDisplayedText = "";
+let setupScreenDetached = false;
 
 const setupScreen = document.getElementById("setup-screen");
 const timerScreen = document.getElementById("timer-screen");
@@ -206,19 +214,29 @@ function exitApp() {
 
 function stopTimer() {
     if (timerInterval) {
-        clearInterval(timerInterval);
+        clearTimeout(timerInterval);
         timerInterval = null;
+    }
+    if (timerRafId !== null) {
+        cancelAnimationFrame(timerRafId);
+        timerRafId = null;
     }
     isTimerRunning = false;
     alarmTriggered = false;
 
     totalSeconds = 0;
     isPaused = false;
+    countdownStartEpochMs = 0;
+    timerStartSeconds = 0;
+    pausedAtEpochMs = 0;
+    totalPausedMs = 0;
+    lastDisplayedText = "";
 
     stopAlarm(true);
-
-    timerDisplay.style.color = "white";
-    timerDisplay.style.opacity = "1";
+    if (setupScreenDetached) {
+        setupScreen.style.display = "";
+        setupScreenDetached = false;
+    }
 
     timerScreen.classList.remove("active");
     setupScreen.classList.add("active");
@@ -228,6 +246,7 @@ function stopTimer() {
 }
 
 function stopAlarm(keepMuted = true) {
+    if (!ENABLE_ALARM_AUDIO) return;
     alarmPlaybackToken++;
     if (!alarmSound) return;
     alarmSound.muted = keepMuted;
@@ -236,6 +255,7 @@ function stopAlarm(keepMuted = true) {
 }
 
 function triggerAlarm() {
+    if (!ENABLE_ALARM_AUDIO) return;
     if (!alarmSound) return;
     const playToken = ++alarmPlaybackToken;
     alarmSound.muted = false;
@@ -249,19 +269,6 @@ function triggerAlarm() {
     }).catch(() => { });
 }
 
-function warmupAudio() {
-    if (!alarmSound) return;
-
-    const warmupToken = ++alarmPlaybackToken;
-    alarmSound.muted = true;
-    alarmSound.play().then(() => {
-        if (warmupToken !== alarmPlaybackToken) return;
-        alarmSound.pause();
-        alarmSound.currentTime = 0;
-        alarmSound.muted = false;
-    }).catch(() => { });
-}
-
 function startTimer() {
     const h = parseInt(document.getElementById("hours").value, 10) || 0;
     const m = parseInt(document.getElementById("minutes").value, 10) || 0;
@@ -271,23 +278,29 @@ function startTimer() {
 
     if (totalSeconds <= 0) return;
 
-    warmupAudio();
-    startCountdown();
+    startCountdown(totalSeconds);
 }
 
 function startPreset(seconds) {
-    totalSeconds = seconds;
-    warmupAudio();
-    startCountdown();
+    startCountdown(seconds);
 }
 
-function startCountdown() {
+function startCountdown(seconds) {
     isTimerRunning = true;
     alarmTriggered = false;
-    stopAlarm(false);
+    totalSeconds = seconds;
+    timerStartSeconds = seconds;
+    countdownStartEpochMs = Date.now();
+    pausedAtEpochMs = 0;
+    totalPausedMs = 0;
+    lastDisplayedText = "";
 
     if (timerInterval) {
-        clearInterval(timerInterval);
+        clearTimeout(timerInterval);
+    }
+    if (timerRafId !== null) {
+        cancelAnimationFrame(timerRafId);
+        timerRafId = null;
     }
 
     isPaused = false;
@@ -295,50 +308,102 @@ function startCountdown() {
     setupScreen.classList.remove("active");
     timerScreen.classList.add("active");
 
-    updateDisplay();
+    // Prioritize first paint of the timer screen before non-critical work.
+    requestAnimationFrame(() => {
+        updateDisplay(true);
+        // After timer screen becomes visible, fully detach the heavy setup DOM.
+        setTimeout(() => {
+            setupScreen.style.display = "none";
+            setupScreenDetached = true;
+        }, 0);
+    });
 
-    timerInterval = setInterval(() => {
-        if (!isPaused) {
-            totalSeconds--;
-            updateDisplay();
-        }
-    }, 1000);
+    setTimeout(() => {
+        stopAlarm(false);
+    }, 0);
+
+    scheduleNextTick();
 }
 
-function updateDisplay() {
-    const abs = Math.abs(totalSeconds);
+function getRemainingSeconds(nowMs) {
+    const elapsedMs = nowMs - countdownStartEpochMs - totalPausedMs;
+    const remainingMs = timerStartSeconds * 1000 - elapsedMs;
+    return Math.max(0, Math.ceil(remainingMs / 1000));
+}
 
-    const h = Math.floor(abs / 3600);
-    const m = Math.floor((abs % 3600) / 60);
-    const s = abs % 60;
+function updateDisplay(force = false) {
+    const nowMs = Date.now();
 
-    let text = "";
-
-    if (h > 0) {
-        text = `${h}:${pad(m)}:${pad(s)}`;
-    } else if (m > 0) {
-        text = `${m}:${pad(s)}`;
-    } else {
-        text = `${s}`;
+    if (isTimerRunning && !isPaused) {
+        totalSeconds = getRemainingSeconds(nowMs);
     }
 
-    if (totalSeconds < 0) {
-        text = "-" + text;
-    }
+    const remainingMs = Math.max(0, timerStartSeconds * 1000 - (nowMs - countdownStartEpochMs - totalPausedMs));
+    const text = formatDisplayFromMs(remainingMs);
 
-    // Keep overtime clearly visible: 0 and below are red.
-    timerDisplay.style.color = totalSeconds <= 0 ? "red" : "white";
+    if (!force && text === lastDisplayedText) return;
+    lastDisplayedText = text;
 
     if (totalSeconds === 0 && !alarmTriggered && isTimerRunning) {
         alarmTriggered = true;
         triggerAlarm();
+        isTimerRunning = false;
+        if (timerInterval) {
+            clearTimeout(timerInterval);
+            timerInterval = null;
+        }
+        if (timerRafId !== null) {
+            cancelAnimationFrame(timerRafId);
+            timerRafId = null;
+        }
     }
 
     timerDisplay.textContent = text;
 }
 
+function scheduleNextTick() {
+    if (!isTimerRunning || isPaused) return;
+
+    const nowMs = Date.now();
+    const remainingMs = timerStartSeconds * 1000 - (nowMs - countdownStartEpochMs - totalPausedMs);
+
+    if (remainingMs <= 0) {
+        updateDisplay(true);
+        return;
+    }
+
+    const currentVisibleTick = Math.ceil(remainingMs / 1000);
+    const msToNextBoundary = remainingMs - (currentVisibleTick - 1) * 1000;
+    const delay = Math.max(8, Math.min(1000, Math.floor(msToNextBoundary + 1)));
+
+    timerInterval = setTimeout(() => {
+        if (!isTimerRunning || isPaused) return;
+        timerRafId = requestAnimationFrame(() => {
+            timerRafId = null;
+            if (!isTimerRunning || isPaused) return;
+            updateDisplay(true);
+            scheduleNextTick();
+        });
+    }, delay);
+}
+
 function pad(num) {
     return num < 10 ? "0" + num : num;
+}
+
+function formatDisplayFromMs(remainingMs) {
+    const totalWholeSeconds = Math.floor(remainingMs / 1000);
+    const h = Math.floor(totalWholeSeconds / 3600);
+    const m = Math.floor((totalWholeSeconds % 3600) / 60);
+    const s = totalWholeSeconds % 60;
+
+    if (h > 0) {
+        return `${h}:${pad(m)}:${pad(s)}`;
+    }
+    if (m > 0) {
+        return `${m}:${pad(s)}`;
+    }
+    return `${s}`;
 }
 
 function onSetupKeyDown(e) {
@@ -405,7 +470,22 @@ function onTimerKeyDown(e) {
     switch (e.keyCode) {
         case 13: // OK
             isPaused = !isPaused;
-            timerDisplay.style.opacity = isPaused ? "0.5" : "1";
+            if (isPaused) {
+                pausedAtEpochMs = Date.now();
+                if (timerInterval) {
+                    clearTimeout(timerInterval);
+                    timerInterval = null;
+                }
+                if (timerRafId !== null) {
+                    cancelAnimationFrame(timerRafId);
+                    timerRafId = null;
+                }
+            } else if (pausedAtEpochMs) {
+                totalPausedMs += Date.now() - pausedAtEpochMs;
+                pausedAtEpochMs = 0;
+                updateDisplay(true);
+                scheduleNextTick();
+            }
             e.preventDefault();
             break;
 
@@ -449,6 +529,10 @@ document.addEventListener("focusin", (e) => {
 
 window.onload = () => {
     alarmSound = document.getElementById("alarm-sound");
+    if (ENABLE_ALARM_AUDIO && alarmSound) {
+        alarmSound.preload = "auto";
+        alarmSound.load();
+    }
     hideCustomPanel();
     refreshFocusables();
     setFocus(0);
